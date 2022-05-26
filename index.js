@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const port = process.env.PORT || 5000;
 const app = express();
@@ -24,6 +24,14 @@ async function run() {
             const tools = await toolsCollection.find(query).toArray();
             res.send(tools);
         });
+
+        app.get('/tool/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const tool = await toolsCollection.findOne(query);
+            res.send(tool);
+        })
+
     }
     finally {
 
