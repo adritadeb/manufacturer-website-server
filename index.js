@@ -17,6 +17,13 @@ async function run() {
     try {
         await client.connect();
 
+        const toolsCollection = client.db('roll-wall').collection('tools');
+
+        app.get('/tools', async (req, res) => {
+            const query = {};
+            const tools = await toolsCollection.find(query).toArray();
+            res.send(tools);
+        });
     }
     finally {
 
