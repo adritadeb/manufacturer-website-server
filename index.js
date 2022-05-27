@@ -30,7 +30,19 @@ async function run() {
             const query = { _id: ObjectId(id) }
             const tool = await toolsCollection.findOne(query);
             res.send(tool);
-        })
+        });
+
+        app.put('/tool/:id', async (req, res) => {
+            const id = req.params.id;
+            const tool = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: tool
+            }
+            const result = await toolsCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
+        });
 
     }
     finally {
