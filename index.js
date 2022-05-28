@@ -18,6 +18,7 @@ async function run() {
         await client.connect();
 
         const toolsCollection = client.db('roll-wall').collection('tools');
+        const orderCollection = client.db('roll-wall').collection('orders');
 
         app.get('/tools', async (req, res) => {
             const query = {};
@@ -42,6 +43,19 @@ async function run() {
             }
             const result = await toolsCollection.updateOne(filter, updatedDoc, options);
             res.send(result);
+        });
+
+        app.post('/orders', async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+        });
+
+        app.get('/orders', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const orders = await orderCollection.find(query).toArray();
+            res.send(orders);
         });
 
     }
