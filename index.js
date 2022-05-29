@@ -12,6 +12,7 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nkvzr.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 function verifyJWT(req, res, next) {
     const authHeader = req.headers.authorization;
@@ -48,6 +49,18 @@ async function run() {
             }
         }
 
+        app.post('/create-payment-intent', async (req, res) => {
+            const tool = req.body;
+            const price = tool.toolPrice;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({ clientSecret: paymentIntent.client_secret })
+        });
+
         app.get('/tools', async (req, res) => {
             const query = {};
             const tools = await toolsCollection.find(query).toArray();
@@ -59,6 +72,13 @@ async function run() {
             const query = { _id: ObjectId(id) }
             const tool = await toolsCollection.findOne(query);
             res.send(tool);
+        });
+
+        app.get('/order/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const order = await orderCollection.findOne(query);
+            res.send(order);
         });
 
         app.put('/tool/:id', async (req, res) => {
