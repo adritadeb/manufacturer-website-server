@@ -37,6 +37,17 @@ async function run() {
         const reviewCollection = client.db('roll-wall').collection('reviews');
         const userCollection = client.db('roll-wall').collection('users');
 
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccout = await userCollection.findOne({ email: requester });
+            if (requesterAccout.role === 'admin') {
+                next();
+            }
+            else {
+                return res.status(403).send({ message: 'Forbidden access' });
+            }
+        }
+
         app.get('/tools', async (req, res) => {
             const query = {};
             const tools = await toolsCollection.find(query).toArray();
@@ -78,6 +89,11 @@ async function run() {
             }
         });
 
+        app.get('/manageOrders', verifyJWT, async (req, res) => {
+            const result = await orderCollection.find({}).toArray();
+            res.send(result);
+        });
+
         app.post('/reviews', async (req, res) => {
             const review = req.body;
             const result = await reviewCollection.insertOne(review);
@@ -117,7 +133,7 @@ async function run() {
             res.send({ admin: isAdmin });
         });
 
-        app.put('/user/admin/:email', async (req, res) => {
+        app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
             const updateDoc = {
