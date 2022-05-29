@@ -105,6 +105,21 @@ async function run() {
             res.send(result);
         });
 
+        app.patch('/order/:id', async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+
+            const updatedOrder = await orderCollection.updateOne(filter, updatedDoc);
+            res.send(updatedDoc);
+        })
+
         app.get('/orders', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const decodedEmail = req.decoded.email;
@@ -166,6 +181,13 @@ async function run() {
                 $set: { role: 'admin' }
             }
             const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+        app.delete('/order/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const result = await orderCollection.deleteOne(filter);
             res.send(result);
         });
 
