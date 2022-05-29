@@ -73,6 +73,12 @@ async function run() {
             res.send(result);
         });
 
+        app.post('/tools', verifyJWT, verifyAdmin, async (req, res) => {
+            const tool = req.body;
+            const result = await toolsCollection.insertOne(tool);
+            res.send(result);
+        });
+
         app.post('/orders', async (req, res) => {
             const order = req.body;
             const result = await orderCollection.insertOne(order);
