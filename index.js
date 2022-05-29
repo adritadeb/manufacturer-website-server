@@ -62,7 +62,7 @@ async function run() {
             res.send(result);
         });
 
-        app.post('/orders', verifyJWT, async (req, res) => {
+        app.post('/orders', async (req, res) => {
             const order = req.body;
             const result = await orderCollection.insertOne(order);
             res.send(result);
@@ -103,6 +103,28 @@ async function run() {
                 expiresIn: '1h'
             })
             res.send({ result, token });
+        });
+
+        app.get('/users', async (req, res) => {
+            const users = await userCollection.find({}).toArray();
+            res.send(users);
+        });
+
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin });
+        });
+
+        app.put('/user/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' }
+            }
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
         });
 
     }
